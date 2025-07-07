@@ -1,0 +1,66 @@
+services:
+  es01:
+    container_name: es01
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /data/es/esdata:/usr/share/elasticsearch/data
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - node.name=es01
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=${ES01_HOST_IP},${ES02_HOST_IP},${ES03_HOST_IP}
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+      - network.publish_host=${ES01_HOST_IP}
+
+  es02:
+    container_name: es02
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /data/es/esdata:/usr/share/elasticsearch/data
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - node.name=es02
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=${ES01_HOST_IP},${ES02_HOST_IP},${ES03_HOST_IP}
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+      - network.publish_host=${ES02_HOST_IP}
+
+  es03:
+    container_name: es03
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /data/es/esdata:/usr/share/elasticsearch/data
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - node.name=es03
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=${ES01_HOST_IP},${ES02_HOST_IP},${ES03_HOST_IP}
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+      - network.publish_host=${ES03_HOST_IP}
+
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    ports:
+      - "5601:5601"
+    volumes:
+      - /data/es/kibanadata:/usr/share/kibana/data
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTICSEARCH_HOSTS=http://es01:9200
