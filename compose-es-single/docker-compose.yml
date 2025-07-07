@@ -1,0 +1,23 @@
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
+    ports:
+      - "9200:9200"
+    volumes:
+      - /data/es/esdata:/usr/share/elasticsearch/data
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:9.0.0
+    volumes:
+      - /data/es/kibanadata:/usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
