@@ -51,7 +51,15 @@
    # es03执行
    docker-compose up -d es03 
    ```
-7. 部署kibana, 在es01上启动kibana
+7. 连接测试
+   ```bash
+   # 查看当前节点信息
+   curl --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200
+   
+   # 查看所有节点：
+   curl --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/_cat/nodes
+   ```
+8. 部署kibana, 在es01上启动kibana
    ```bash
    docker-compose up -d kibana 
    ```
@@ -64,6 +72,25 @@
    ```bash
    kubectl apply -f filebeat-kubernetes.yaml
    ```
+
+## 常用命令
+```bash
+# 查看所有节点
+curl --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/_cat/nodes
+
+# 查看所有索引
+curl --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/_cat/indices?v
+
+# 删除索引
+curl -X DELETE --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/your_index_name
+
+# 查看所有datastream
+curl --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/_data_stream
+
+# 删除datastream
+curl -X DELETE --cacert /data/es/certs/ca/ca.crt -uelastic:esjJIV0VCGlEkzfI8mfJN6 https://localhost:9200/_data_stream/filebeat-ng-test-2025.07.07
+```
+
 ## 参考资料
 官方compose：https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-docker-compose
 

@@ -111,61 +111,60 @@ metadata:
     k8s-app: filebeat
 data:
   filebeat.yml: |-
-    filebeat.inputs:
-    - type: filestream
-      id: kubernetes-container-logs
-      paths:
-        - /var/log/containers/*.log
-      parsers:
-        - container: ~
-        - multiline:
-            type: pattern
-            pattern: '^\['
-            negate: true
-            match: after
-      prospector:
-        scanner:
-          fingerprint.enabled: true
-          symlinks: true
-      file_identity.fingerprint: ~
-      processors:
-        - add_kubernetes_metadata:
-            host: ${NODE_NAME}
-            matchers:
-            - logs_path:
-                logs_path: "/var/log/containers/"
-
-    # To enable hints based autodiscover, remove `filebeat.inputs` configuration and uncomment this:
-    # filebeat.autodiscover:
-    #  providers:
-    #    - type: kubernetes
-    #      node: ${NODE_NAME}
-    #      hints.enabled: true
-    #      hints.default_config:
-    #        type: filestream
-    #        id: kubernetes-container-logs-${data.kubernetes.pod.name}-${data.kubernetes.container.id}
-    #        paths:
-    #        - /var/log/containers/*-${data.kubernetes.container.id}.log
-    #        parsers:
-    #        - container: ~
-    #        prospector:
-    #         scanner:
-    #           fingerprint.enabled: true
-    #           symlinks: true
-    #        file_identity.fingerprint: ~
-
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          templates:
+            - condition:
+                equals:
+                  kubernetes.namespace: ingress-nginx
+              config:
+                - type: filestream
+                  id: container-${data.kubernetes.container.id}
+                  prospector.scanner.symlinks: true
+                  parsers:
+                    - container: ~
+                  paths:
+                    - /var/log/containers/*-${data.kubernetes.container.id}.log
+                  fields:
+                    custom_index: "filebeat-ingress-nginx"
+                  fields_under_root: true
+    
+            - condition:
+                equals:
+                  kubernetes.namespace: ng-test
+              config:
+                - type: filestream
+                  id: container-${data.kubernetes.container.id}
+                  prospector.scanner.symlinks: true
+                  parsers:
+                    - container: ~
+                    - multiline:
+                        type: pattern
+                        pattern: '^\['
+                        negate: true
+                        match: after
+                  paths:
+                    - /var/log/containers/*-${data.kubernetes.container.id}.log
+                  fields:
+                    custom_index: "filebeat-ng-test"
+                  fields_under_root: true
+    
     processors:
       - add_cloud_metadata:
       - add_host_metadata:
-
-    cloud.id: ${ELASTIC_CLOUD_ID}
-    cloud.auth: ${ELASTIC_CLOUD_AUTH}
-
+    
     output.elasticsearch:
       hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
       username: ${ELASTICSEARCH_USERNAME}
       password: ${ELASTICSEARCH_PASSWORD}
       ssl.certificate_authorities: ["/etc/elasticsearch/certsca/tls.crt"]
+      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd}"
+    
+    setup.ilm.enabled: false
+    setup.template.enabled: true
+    setup.template.name: "filebeat"
+    setup.template.pattern: "filebeat-*"
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -196,13 +195,13 @@ spec:
         ]
         env:
         - name: ELASTICSEARCH_HOST
-          value: https://192.168.6.115
+          value: https://10.10.131.178
         - name: ELASTICSEARCH_PORT
           value: "9200"
         - name: ELASTICSEARCH_USERNAME
           value: elastic
         - name: ELASTICSEARCH_PASSWORD
-          value: es123456
+          value: esjJIV0VCGlEkzfI8mfJN6
 #        - name: ELASTIC_CLOUD_ID
 #          value: ''
 #        - name: ELASTIC_CLOUD_AUTH
