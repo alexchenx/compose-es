@@ -127,7 +127,7 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "filebeat-ingress-nginx"
+                    custom_index: "test-ingress"
                   fields_under_root: true
     
             - condition:
@@ -147,7 +147,7 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "filebeat-ng-test"
+                    custom_index: "test-applications"
                   fields_under_root: true
     
     processors:
