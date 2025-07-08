@@ -156,7 +156,7 @@ data:
     
     output.elasticsearch:
       hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
-      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd}"
+      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd||Asia/Shanghai}"
     
     setup.ilm.enabled: false
     setup.template.enabled: true
