@@ -120,3 +120,38 @@ es在创建索时会以UTC时区来进行日期分隔，比如:
 SSL配置：https://www.elastic.co/docs/reference/beats/filebeat/securing-communication-elasticsearch
 
 多行日志：https://www.elastic.co/docs/reference/beats/filebeat/multiline-examples
+
+## 异常
+
+查询时出现异常:
+
+```bash
+The length [1233766] of field [message] in doc[2]/index[.ds-filebeat-9.0.3-2025.07.05-000001] exceeds the [index.highlight.max_analyzed_offset] limit [1000000]. To avoid this error, set the query parameter [max_analyzed_offset] to a value less than index setting [1000000] and this will tolerate long field values by truncating them.
+```
+
+解决：
+
+```bash
+PUT .ds-filebeat-9.0.3-2025.07.05-000001/_settings
+{
+  "index.highlight.max_analyzed_offset": 10000000
+}
+```
+
+继续报错：
+
+```bash
+Can't store an async search response larger than [10485760] bytes. This limit can be set by changing the [search.max_async_search_response_size] setting.
+```
+
+解决：
+
+```bash
+PUT _cluster/settings
+{
+  "persistent": {
+    "search.max_async_search_response_size": "50mb"
+  }
+}
+```
+
