@@ -5,6 +5,8 @@ services:
     volumes:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
     user: "0"
+    environment:
+      - TZ=Asia/Shanghai
     command: >
       bash -c '
         if [ x${ELASTIC_PASSWORD} == x ]; then
@@ -71,7 +73,7 @@ services:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
       - /data/es/esdata:/usr/share/elasticsearch/data
     ports:
-      - ${ES_PORT}:9200
+      - "9200:9200"
       - "9300:9300"
     environment:
       - TZ=Asia/Shanghai
@@ -96,7 +98,6 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
       - xpack.ml.use_auto_machine_memory_percent=true
-#    mem_limit: ${MEM_LIMIT}
     ulimits:
       memlock:
         soft: -1
@@ -118,7 +119,7 @@ services:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
       - /data/es/esdata:/usr/share/elasticsearch/data
     ports:
-      - ${ES_PORT}:9200
+      - "9200:9200"
       - "9300:9300"
     environment:
       - TZ=Asia/Shanghai
@@ -164,7 +165,7 @@ services:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
       - /data/es/esdata:/usr/share/elasticsearch/data
     ports:
-      - ${ES_PORT}:9200
+      - "9200:9200"
       - "9300:9300"
     environment:
       - TZ=Asia/Shanghai
@@ -210,7 +211,7 @@ services:
       - /data/es/certs:/usr/share/kibana/config/certs
       - /data/es/kibanadata:/usr/share/kibana/data
     ports:
-      - ${KIBANA_PORT}:5601
+      - "5601:5601"
     environment:
       - TZ=Asia/Shanghai
       - ES_JAVA_OPTS=-Xms1g -Xmx1g

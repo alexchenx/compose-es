@@ -127,12 +127,12 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "test-ingress"
+                    custom_index: "s7-ingress"
                   fields_under_root: true
     
             - condition:
                 equals:
-                  kubernetes.namespace: ng-test
+                  kubernetes.namespace: ng-s7
               config:
                 - type: filestream
                   id: container-${data.kubernetes.container.id}
@@ -147,7 +147,7 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "test-applications"
+                    custom_index: "s7-applications"
                   fields_under_root: true
     
     processors:
@@ -159,7 +159,7 @@ data:
       username: ${ELASTICSEARCH_USERNAME}
       password: ${ELASTICSEARCH_PASSWORD}
       ssl.certificate_authorities: ["/etc/elasticsearch/certsca/tls.crt"]
-      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd|+8:00}"
+      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd}"
     
     setup.ilm.enabled: false
     setup.template.enabled: true
@@ -194,18 +194,16 @@ spec:
           "-e",
         ]
         env:
+        - name: TZ
+          value: Asia/Shanghai
         - name: ELASTICSEARCH_HOST
-          value: https://10.10.131.178
+          value: https://10.10.101.24
         - name: ELASTICSEARCH_PORT
           value: "9200"
         - name: ELASTICSEARCH_USERNAME
           value: elastic
         - name: ELASTICSEARCH_PASSWORD
           value: esjJIV0VCGlEkzfI8mfJN6
-#        - name: ELASTIC_CLOUD_ID
-#          value: ''
-#        - name: ELASTIC_CLOUD_AUTH
-#          value: ''
         - name: NODE_NAME
           valueFrom:
             fieldRef:
