@@ -39,7 +39,7 @@ for PREFIX in "${INDEX_PREFIXES[@]}"; do
 
     if [[ "$DATE_PART" < "$DATE_LIMIT" ]]; then
       echo "删除索引: $index"
-#      curl $CURL_OPTS -X DELETE "$ES_HOST/$index"
+      curl "$CURL_OPTS" -X DELETE "$ES_HOST/$index"
     else
       echo "保留索引: $index"
     fi
