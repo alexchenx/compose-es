@@ -12,9 +12,9 @@ CA_CERT="/path/to/ca.crt"   # 留空则不使用 --cacert
 # =====================================================
 
 # === 构建 curl 通用参数 ===
-CURL_OPTS="-s"
-[[ -n "$ES_USER" && -n "$ES_PASS" ]] && CURL_OPTS="$CURL_OPTS -u $ES_USER:$ES_PASS"
-[[ -n "$CA_CERT" ]] && CURL_OPTS="$CURL_OPTS --cacert $CA_CERT"
+CURL_OPTS=(-s)
+[[ -n "$ES_USER" && -n "$ES_PASS" ]] && CURL_OPTS+=(-u "$ES_USER:$ES_PASS")
+[[ -n "$CA_CERT" ]] && CURL_OPTS+=(--cacert "$CA_CERT")
 
 DATE_LIMIT=$(date -d "$RETAIN_DAYS days ago" +%Y.%m.%d)
 echo "保留最近 $RETAIN_DAYS 天内的索引（>= $DATE_LIMIT）"
@@ -23,7 +23,7 @@ for PREFIX in "${INDEX_PREFIXES[@]}"; do
   echo ""
   echo "正在处理前缀：$PREFIX"
 
-  INDICES=$(curl "$CURL_OPTS" "$ES_HOST/_cat/indices/${PREFIX}*?h=index" | sort)
+  INDICES=$(curl "${CURL_OPTS[@]}" "$ES_HOST/_cat/indices/${PREFIX}*?h=index" | sort)
 
   if [[ -z "$INDICES" ]]; then
     echo "没有匹配前缀 $PREFIX 的索引"
@@ -39,7 +39,7 @@ for PREFIX in "${INDEX_PREFIXES[@]}"; do
 
     if [[ "$DATE_PART" < "$DATE_LIMIT" ]]; then
       echo -n "删除索引: $index"
-      curl "$CURL_OPTS" -X DELETE "$ES_HOST/$index"
+      curl "${CURL_OPTS[@]}" -X DELETE "$ES_HOST/$index"
       echo
     else
       echo "保留索引: $index"
