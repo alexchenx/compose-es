@@ -1,20 +1,25 @@
 #!/bin/bash
 
-# ==================== 用户配置区域 ====================
-ES_HOST="https://localhost:9200"
-RETAIN_DAYS=7
-INDEX_PREFIXES=("test-applications-" "test-ingress-")
+echo "##################################### $(date "+%Y-%m-%d %H:%M:%S %z") #####################################"
 
-# ============ 可选认证配置（留空则不使用） ============
+ES_HOST="http://localhost:9200"
+RETAIN_DAYS=7
+
+INDEX_PREFIXES=(
+  "test-applications-"
+  "test-ingress-"
+)
+
+AUTH_ENABLE=false
 ES_USER="elastic"
 ES_PASS="your_password"
-CA_CERT="/path/to/ca.crt"   # 留空则不使用 --cacert
-# =====================================================
+CA_CERT="/path/to/ca.crt"
 
-# === 构建 curl 通用参数 ===
 CURL_OPTS=(-s)
-[[ -n "$ES_USER" && -n "$ES_PASS" ]] && CURL_OPTS+=(-u "$ES_USER:$ES_PASS")
-[[ -n "$CA_CERT" ]] && CURL_OPTS+=(--cacert "$CA_CERT")
+if [[ "$AUTH_ENABLE" == "true" ]]; then
+  [[ -n "$ES_USER" && -n "$ES_PASS" ]] && CURL_OPTS+=(-u "$ES_USER:$ES_PASS")
+  [[ -n "$CA_CERT" ]] && CURL_OPTS+=(--cacert "$CA_CERT")
+fi
 
 DATE_LIMIT=$(date -d "$RETAIN_DAYS days ago" +%Y.%m.%d)
 echo "保留最近 $RETAIN_DAYS 天内的索引（>= $DATE_LIMIT）"
@@ -38,7 +43,7 @@ for PREFIX in "${INDEX_PREFIXES[@]}"; do
     fi
 
     if [[ "$DATE_PART" < "$DATE_LIMIT" ]]; then
-      echo -n "删除索引: $index"
+      echo -n "删除索引: $index "
       curl "${CURL_OPTS[@]}" -X DELETE "$ES_HOST/$index"
       echo
     else
@@ -46,3 +51,5 @@ for PREFIX in "${INDEX_PREFIXES[@]}"; do
     fi
   done
 done
+
+echo -e "\nDone.\n"
