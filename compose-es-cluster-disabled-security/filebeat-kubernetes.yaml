@@ -117,7 +117,9 @@ data:
           templates:
             - condition:
                 equals:
-                  kubernetes.namespace: ingress-nginx
+                  #kubernetes.namespace: ingress-nginx
+                  kubernetes.namespace: kube-system
+                  kubernetes.labels.app.kubernetes.io/name: rke2-ingress-nginx
               config:
                 - type: filestream
                   id: container-${data.kubernetes.container.id}
@@ -155,8 +157,17 @@ data:
       - add_host_metadata:
     
     output.elasticsearch:
-      hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+      hosts: ['${ES01_ADDR}','${ES01_ADDR}','${ES01_ADDR}']
       index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd}"
+      
+    #output.kafka:
+    #  hosts: ["${KAFKA_HOST}:9092"]
+    #  topic: '%{[custom_index]}'
+    #  partition.round_robin:
+    #    reachable_only: false
+    #  required_acks: 1
+    #  compression: gzip
+    #  max_message_bytes: 1000000
     
     setup.ilm.enabled: false
     setup.template.enabled: true
@@ -191,12 +202,16 @@ spec:
           "-e",
         ]
         env:
-        - name: ELASTICSEARCH_HOST
-          value: http://192.168.6.102
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+          - name: ES01_ADDR
+            value: http://192.168.6.102:9200
+          - name: ES02_ADDR
+            value: http://192.168.6.109:9200
+          - name: ES03_ADDR
+            value: http://192.168.6.111:9200
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         securityContext:
           runAsUser: 0
           # If using Red Hat OpenShift uncomment this:

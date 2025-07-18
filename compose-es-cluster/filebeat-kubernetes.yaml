@@ -118,6 +118,8 @@ data:
             - condition:
                 equals:
                   kubernetes.namespace: ingress-nginx
+                  #kubernetes.namespace: kube-system
+                  #kubernetes.labels.app.kubernetes.io/name: rke2-ingress-nginx
               config:
                 - type: filestream
                   id: container-${data.kubernetes.container.id}
@@ -127,12 +129,12 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "s7-ingress"
+                    custom_index: "tycoon-ingress"
                   fields_under_root: true
     
             - condition:
                 equals:
-                  kubernetes.namespace: ng-s7
+                  kubernetes.namespace: ng-tycoon
               config:
                 - type: filestream
                   id: container-${data.kubernetes.container.id}
@@ -147,7 +149,7 @@ data:
                   paths:
                     - /var/log/containers/*-${data.kubernetes.container.id}.log
                   fields:
-                    custom_index: "s7-applications"
+                    custom_index: "tycoon-applications"
                   fields_under_root: true
     
     processors:
@@ -155,7 +157,7 @@ data:
       - add_host_metadata:
     
     output.elasticsearch:
-      hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+      hosts: ['${ES01_ADDR}','${ES02_ADDR}','${ES03_ADDR}']
       username: ${ELASTICSEARCH_USERNAME}
       password: ${ELASTICSEARCH_PASSWORD}
       ssl.certificate_authorities: ["/etc/elasticsearch/certsca/tls.crt"]
@@ -194,20 +196,22 @@ spec:
           "-e",
         ]
         env:
-        - name: TZ
-          value: Asia/Shanghai
-        - name: ELASTICSEARCH_HOST
-          value: https://10.10.101.24
-        - name: ELASTICSEARCH_PORT
-          value: "9200"
-        - name: ELASTICSEARCH_USERNAME
-          value: elastic
-        - name: ELASTICSEARCH_PASSWORD
-          value: esjJIV0VCGlEkzfI8mfJN6
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+          - name: TZ
+            value: Asia/Shanghai
+          - name: ES01_ADDR
+            value: https://10.10.101.24:9200
+          - name: ES02_ADDR
+            value: https://10.10.101.96:9200
+          - name: ES03_ADDR
+            value: https://10.10.101.136:9200
+          - name: ELASTICSEARCH_USERNAME
+            value: elastic
+          - name: ELASTICSEARCH_PASSWORD
+            value: esjJIV0VCGlEkzfI8mfJN6
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         securityContext:
           runAsUser: 0
           # If using Red Hat OpenShift uncomment this:

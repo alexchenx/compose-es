@@ -155,3 +155,37 @@ PUT _cluster/settings
 }
 ```
 
+## 优化
+我的3节点es集群都是4C8G的机器，磁盘iops 3000, 吞吐量 125，通过监控发现io读基本占满3000，cpu以及负载都比较高。
+
+将jvm参数从-Xms1g -Xmx1g改为了-Xms2g -Xmx2g，iops降低了些，但是读吞吐量打满了125
+
+将jvm参数修改为了-Xms4g -Xmx4g，iops读依然会被打满，吞吐量也会打满
+
+还是要加一层kafka来作为缓冲，还可以保证当es集群故障时，日志不丢失。
+
+## 设置默认副本数为0
+es默认会有1个主分片，1个副分片，一共会有2份数据，虽然对数据安全有有保障，但如果数据量大，对存储压力很大，且对存储的io读压力很大。
+
+修改默认副本数为0，新创建的索引将会执行此规则：
+```bash
+PUT _index_template/default-no-replicas
+{
+    "index_patterns": ["test-*"],
+    "template": {
+        "settings": {
+            "number_of_replicas": "0"
+        }
+    },
+    "priority": 1
+}
+```
+对当前索引设置副本为0：
+```bash
+PUT test-applications-2025.07.16/_settings
+{
+    "index": {
+        "number_of_replicas": 0
+    }
+}
+```

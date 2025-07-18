@@ -2,14 +2,15 @@ services:
   es01:
     container_name: es01
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: unless-stopped
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - /data/es/esdata:/usr/share/elasticsearch/data
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -17,18 +18,24 @@ services:
       - xpack.security.enabled=false
       - network.host=0.0.0.0
       - network.publish_host=${ES01_HOST_IP}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   es02:
     container_name: es02
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: unless-stopped
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - /data/es/esdata:/usr/share/elasticsearch/data
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es02
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -36,18 +43,24 @@ services:
       - xpack.security.enabled=false
       - network.host=0.0.0.0
       - network.publish_host=${ES02_HOST_IP}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   es03:
     container_name: es03
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: unless-stopped
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - /data/es/esdata:/usr/share/elasticsearch/data
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es03
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -55,16 +68,26 @@ services:
       - xpack.security.enabled=false
       - network.host=0.0.0.0
       - network.publish_host=${ES03_HOST_IP}
-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   kibana:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    restart: unless-stopped
     ports:
       - "5601:5601"
     volumes:
       - /data/es/kibanadata:/usr/share/kibana/data
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - ELASTICSEARCH_HOSTS=http://es01:9200
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${KB_JAVA_OPTS}
+      - ELASTICSEARCH_HOSTS=["http://${ES01_HOST_IP}:9200","http://${ES02_HOST_IP}:9200","http://${ES03_HOST_IP}:9200"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"

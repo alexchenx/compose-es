@@ -1,4 +1,6 @@
 #!/bin/bash
+# crontab -l
+# 0 3 * * * bash /data/compose/clean_index.sh >> /var/log/clean_index.log 2>&1
 
 echo "##################################### $(date "+%Y-%m-%d %H:%M:%S %z") #####################################"
 

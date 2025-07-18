@@ -1,12 +1,13 @@
 services:
   setup:
     container_name: setup
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: no
     volumes:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
     user: "0"
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=${TZ}
     command: >
       bash -c '
         if [ x${ELASTIC_PASSWORD} == x ]; then
@@ -65,10 +66,16 @@ services:
       interval: 1s
       timeout: 5s
       retries: 120
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   es01:
     container_name: es01
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: unless-stopped
     volumes:
       - /data/es/certs:/usr/share/elasticsearch/config/certs
       - /data/es/esdata:/usr/share/elasticsearch/data
@@ -76,8 +83,8 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -111,6 +118,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   es02:
     container_name: es02
@@ -122,8 +134,8 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es02
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -157,6 +169,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   es03:
     container_name: es03
@@ -168,8 +185,8 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
       - node.name=es03
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01,es02,es03
@@ -203,6 +220,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
 
   kibana:
     container_name: kibana
@@ -213,10 +235,10 @@ services:
     ports:
       - "5601:5601"
     environment:
-      - TZ=Asia/Shanghai
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - TZ=${TZ}
+      - ES_JAVA_OPTS=${KB_JAVA_OPTS}
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:9200
+      - ELASTICSEARCH_HOSTS=["https://${ES01_HOST_IP}:9200","https://${ES02_HOST_IP}:9200","https://${ES03_HOST_IP}:9200"]
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -229,3 +251,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200M"
+        max-file: "1"
