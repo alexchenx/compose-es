@@ -162,9 +162,9 @@ PUT _cluster/settings
 
 将jvm参数修改为了-Xms4g -Xmx4g，iops读依然会被打满，吞吐量也会打满
 
-还是要加一层kafka来作为缓冲，还可以保证当es集群故障时，日志不丢失。
+还是要加一层kafka来作为缓冲，还可以保证当es集群故障时，日志不丢失，但需要同时增加kafka和logstash相应需要的资源也更多。
 
-## 设置默认副本数为0
+### 设置默认副本数为0
 es默认会有1个主分片，1个副分片，一共会有2份数据，虽然对数据安全有有保障，但如果数据量大，对存储压力很大，且对存储的io读压力很大。
 
 修改默认副本数为0，新创建的索引将会执行此规则：
@@ -187,5 +187,75 @@ PUT test-applications-2025.07.16/_settings
     "index": {
         "number_of_replicas": 0
     }
+}
+```
+
+### 设置刷新频率
+每写一次默认 1s 刷新，导致频繁磁盘 flush。
+```bash
+PUT your-index-pattern*/_settings
+{
+  "index": {
+    "refresh_interval": "30s"
+  }
+}
+```
+可以和设置默认副本数为0同时设置：
+```json
+{
+  "index": {
+    "number_of_replicas": "0",
+    "refresh_interval": "30s"
+  }
+}
+```
+### 移动索引到指定节点
+集群运行过程中可能会出现某个节点安置了多个索引，其他节点就比较闲，这时我们可以手动将指定的索引移动到闲一点的节点，分担压力。
+#### 手动方式
+```bash
+POST _cluster/reroute
+{
+  "commands": [
+    {
+      "move": {
+        "index": "your-index-name",
+        "shard": 0,
+        "from_node": "es-node-1",
+        "to_node": "es-node-2"
+      }
+    }
+  ]
+}
+```
+#### 自动方式
+GET _cluster/settings?include_defaults=true
+检查 "cluster.routing.allocation.enable": "all" 则为启用状态。
+但实际上可能仍然不均衡。
+
+手动触发自动均衡：
+```bash
+POST _cluster/reroute?pretty
+```
+这不会改变设置，而是让集群立刻评估是否有需要迁移的分片。
+
+
+临时排除当前负载高的节点
+```bash
+PUT _cluster/settings
+{
+  "transient": {
+    "cluster.routing.allocation.exclude._name": "es02"
+  }
+}
+```
+注意：此操作会排空指定节点上的索引，直至其他节点无法接收。
+
+恢复设置
+```bash
+PUT _cluster/settings
+{
+  "transient": {
+    "cluster.routing.allocation.exclude._name": ""
+  }
 }
 ```
