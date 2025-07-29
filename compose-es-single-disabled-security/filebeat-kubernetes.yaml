@@ -158,7 +158,7 @@ data:
     
     output.elasticsearch:
       hosts: ['${ELASTICSEARCH_ADDR}']
-      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd}"
+      index: "%{[custom_index]:filebeat-default}-%{+yyyy.MM.dd_HH}"
       
     #output.kafka:
     #  hosts: ["${KAFKA_ADDR}"]
