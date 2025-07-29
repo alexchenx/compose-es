@@ -231,6 +231,22 @@ POST _cluster/reroute
 GET _cluster/settings?include_defaults=true
 检查 "cluster.routing.allocation.enable": "all" 则为启用状态。
 但实际上可能仍然不均衡。
+ - all：默认，允许所有迁移。
+ - primaries：只允许主分片分配。
+ - new_primaries：仅允许新创建索引的主分片分配。
+ - none：禁止所有分片的自动分配（包括迁移、恢复等）。
+```bash
+# 关闭集群分片自动分配
+PUT _cluster/settings
+{
+  "persistent": {
+    "cluster.routing.allocation.enable": "none"
+  }
+}
+```
+
+
+
 
 手动触发自动均衡：
 ```bash
