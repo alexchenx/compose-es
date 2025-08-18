@@ -16,6 +16,9 @@
     ```
 3. 创建所需目录并授权
     ```bash
+    # 若是重建，先删除原有目录数据
+    rm -rf /data/es
+    
     # 在所有主机上执行
     mkdir -p /data/es/esdata && chown -R 1000:1000 /data/es
     
@@ -45,8 +48,8 @@
    ```
 5. 将创建的证书拷贝到es02, es03主机相同目录
    ```bash
-   scp -r /data/es/certs/ es-002:/data/es/
-   scp -r /data/es/certs/ es-003:/data/es/ 
+   scp -r -i /root/.ssh/key.pem /data/es/certs/ 10.10.101.96:/data/es/
+   scp -r -i /root/.ssh/key.pem /data/es/certs/ 10.10.101.136:/data/es/ 
    ```
 6. 部署elasticsearch, 分别在3台主机上执行：
    ```bash
